@@ -5,26 +5,26 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import ru.quipy.api.ProjectAggregate
-import ru.quipy.api.ProjectCreatedEvent
+import ru.quipy.api.UserAggregate
+import ru.quipy.api.UserCreatedEvent
 import ru.quipy.streams.annotation.AggregateSubscriber
 import ru.quipy.streams.annotation.SubscribeEvent
 
 @Service
-@AggregateSubscriber(aggregateClass = ProjectAggregate::class, subscriberName = "project-event-subscriber")
-class ProjectEventSubscriber {
+@AggregateSubscriber(aggregateClass = UserAggregate::class, subscriberName = "user-event-subscriber")
+class UserAggregateEventSubscriber {
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     @SubscribeEvent
-    fun projectCreatedSubscriber(event: ProjectCreatedEvent) {
-        logger.info("Project created {}", event)
+    fun userCreatedSubscriber(event: UserCreatedEvent) {
+        logger.info("User created {}", event)
 
         transaction {
-            ProjectTable.insert {
-                it[id] = event.projectId
-                it[creatorId] = event.creatorId
-                it[title] = event.title
+            UserTable.insert {
+                it[id] = event.userId
+                it[login] = event.login
+                it[password] = event.password
                 it[createdAt] = event.createdAt
             }
         }

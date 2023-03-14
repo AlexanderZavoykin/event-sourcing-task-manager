@@ -12,8 +12,9 @@ import ru.quipy.core.EventSourcingServiceFactory
 import ru.quipy.logic.ProjectAggregateState
 import ru.quipy.logic.TaskAggregateState
 import ru.quipy.logic.UserAggregateState
-import ru.quipy.projection.ProjectEventSubscriber
-import ru.quipy.projection.UserEventSubscriber
+import ru.quipy.projection.ProjectAggregateEventSubscriber
+import ru.quipy.projection.TaskAggregateEventSubscriber
+import ru.quipy.projection.UserAggregateEventSubscriber
 import ru.quipy.streams.AggregateSubscriptionsManager
 import java.util.*
 import javax.annotation.PostConstruct
@@ -30,15 +31,19 @@ class EventSourcingLibConfiguration {
     private lateinit var subscriptionsManager: AggregateSubscriptionsManager
 
     @Autowired
-    private lateinit var projectEventSubscriber: ProjectEventSubscriber
+    private lateinit var projectAggregateEventSubscriber: ProjectAggregateEventSubscriber
 
     @Autowired
-    private lateinit var userEventSubscriber: UserEventSubscriber
+    private lateinit var userAggregateEventSubscriber: UserAggregateEventSubscriber
+
+    @Autowired
+    private lateinit var taskAggregateEventSubscriber: TaskAggregateEventSubscriber
 
     @PostConstruct
     fun setup() {
-        subscriptionsManager.subscribe<ProjectAggregate>(projectEventSubscriber)
-        subscriptionsManager.subscribe<UserAggregate>(userEventSubscriber)
+        subscriptionsManager.subscribe<ProjectAggregate>(projectAggregateEventSubscriber)
+        subscriptionsManager.subscribe<UserAggregate>(userAggregateEventSubscriber)
+        subscriptionsManager.subscribe<TaskAggregate>(taskAggregateEventSubscriber)
     }
 
     @Bean
