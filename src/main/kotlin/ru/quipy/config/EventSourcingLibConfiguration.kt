@@ -12,7 +12,11 @@ import ru.quipy.core.EventSourcingServiceFactory
 import ru.quipy.logic.ProjectAggregateState
 import ru.quipy.logic.TaskAggregateState
 import ru.quipy.logic.UserAggregateState
+import ru.quipy.projection.ProjectEventSubscriber
+import ru.quipy.projection.UserEventSubscriber
+import ru.quipy.streams.AggregateSubscriptionsManager
 import java.util.*
+import javax.annotation.PostConstruct
 
 @Configuration
 class EventSourcingLibConfiguration {
@@ -21,6 +25,21 @@ class EventSourcingLibConfiguration {
 
     @Autowired
     private lateinit var eventSourcingServiceFactory: EventSourcingServiceFactory
+
+    @Autowired
+    private lateinit var subscriptionsManager: AggregateSubscriptionsManager
+
+    @Autowired
+    private lateinit var projectEventSubscriber: ProjectEventSubscriber
+
+    @Autowired
+    private lateinit var userEventSubscriber: UserEventSubscriber
+
+    @PostConstruct
+    fun setup() {
+        subscriptionsManager.subscribe<ProjectAggregate>(projectEventSubscriber)
+        subscriptionsManager.subscribe<UserAggregate>(userEventSubscriber)
+    }
 
     @Bean
     fun projectEsService(): EventSourcingService<UUID, ProjectAggregate, ProjectAggregateState> =
