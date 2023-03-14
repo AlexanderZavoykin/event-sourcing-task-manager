@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS task
   created_at        BIGINT NOT NULL
 );
 
-CREATE INDEX task_task_task_status_id ON task(task_status_id);
+CREATE INDEX task_task_status_id ON task(task_status_id);
 
 CREATE TABLE IF NOT EXISTS task_executor
 (
