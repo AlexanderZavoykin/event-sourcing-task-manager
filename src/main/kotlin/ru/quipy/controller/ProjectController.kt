@@ -20,12 +20,15 @@ import ru.quipy.api.TaskStatusRemovedEvent
 import ru.quipy.logic.ProjectAggregateState
 import ru.quipy.logic.ProjectService
 import ru.quipy.logic.TaskAggregateState
+import ru.quipy.projection.UserResponse
+import ru.quipy.projection.service.UserProjectionService
 import java.util.*
 
 @RestController
 @RequestMapping("/projects")
 class ProjectController(
     private val projectService: ProjectService,
+    private val userProjectionService: UserProjectionService,
 ) {
 
     @PostMapping("/{projectTitle}")
@@ -83,5 +86,9 @@ class ProjectController(
         @PathVariable taskId: UUID,
         @RequestParam executorId: UUID,
     ): ExecutorRetractedFromTaskEvent = projectService.retractExecutor(projectId, taskId, executorId)
+
+    @GetMapping("/{projectId}/members")
+    fun getAllUsersByProjectId(@PathVariable projectId: UUID): List<UserResponse> =
+        userProjectionService.getAllByProjectId(projectId)
 
 }

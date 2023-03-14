@@ -12,9 +12,9 @@ import ru.quipy.core.EventSourcingServiceFactory
 import ru.quipy.logic.ProjectAggregateState
 import ru.quipy.logic.TaskAggregateState
 import ru.quipy.logic.UserAggregateState
-import ru.quipy.projection.ProjectAggregateEventSubscriber
-import ru.quipy.projection.TaskAggregateEventSubscriber
-import ru.quipy.projection.UserAggregateEventSubscriber
+import ru.quipy.projection.subscriber.ProjectAggregateEventSubscriber
+import ru.quipy.projection.subscriber.TaskAggregateEventSubscriber
+import ru.quipy.projection.subscriber.UserAggregateEventSubscriber
 import ru.quipy.streams.AggregateSubscriptionsManager
 import java.util.*
 import javax.annotation.PostConstruct

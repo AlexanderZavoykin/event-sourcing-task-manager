@@ -1,4 +1,4 @@
-package ru.quipy.projection
+package ru.quipy.projection.subscriber
 
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
@@ -14,6 +14,8 @@ import ru.quipy.api.ExecutorRetractedFromTaskEvent
 import ru.quipy.api.TaskAggregate
 import ru.quipy.api.TaskCreatedEvent
 import ru.quipy.api.TaskStatusAssignedToTaskEvent
+import ru.quipy.projection.TaskExecutorTable
+import ru.quipy.projection.TaskTable
 import ru.quipy.streams.annotation.AggregateSubscriber
 import ru.quipy.streams.annotation.SubscribeEvent
 

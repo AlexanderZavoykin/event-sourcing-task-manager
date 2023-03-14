@@ -1,4 +1,4 @@
-package ru.quipy.projection
+package ru.quipy.projection.subscriber
 
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
@@ -14,6 +14,9 @@ import ru.quipy.api.ProjectMemberAddedEvent
 import ru.quipy.api.ProjectTitleChangedEvent
 import ru.quipy.api.TaskStatusCreatedEvent
 import ru.quipy.api.TaskStatusRemovedEvent
+import ru.quipy.projection.ProjectMemberTable
+import ru.quipy.projection.ProjectTable
+import ru.quipy.projection.TaskStatusTable
 import ru.quipy.streams.annotation.AggregateSubscriber
 import ru.quipy.streams.annotation.SubscribeEvent
 
