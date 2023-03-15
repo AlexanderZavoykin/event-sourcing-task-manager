@@ -33,6 +33,7 @@ class ProjectAggregateState : AggregateState<UUID, ProjectAggregate> {
 
         val taskStatus = TaskStatusEntity(event.defaultTaskStatusId, event.defaultTaskStatusName)
         taskStatuses[taskStatus.id] = taskStatus
+
         createdAt = event.createdAt
         updatedAt = event.createdAt
     }

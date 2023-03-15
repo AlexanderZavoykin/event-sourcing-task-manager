@@ -83,6 +83,7 @@ class ProjectAggregateEventSubscriber {
 
         transaction {
             TaskStatusTable.insert {
+                it[id] = event.taskStatusId
                 it[projectId] = event.projectId
                 it[name] = event.taskStatusName
                 it[ProjectMemberTable.createdAt] = event.createdAt
