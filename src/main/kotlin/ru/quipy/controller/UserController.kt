@@ -11,15 +11,15 @@ import org.springframework.web.bind.annotation.RestController
 import ru.quipy.api.UserCreatedEvent
 import ru.quipy.logic.UserAggregateState
 import ru.quipy.logic.UserService
-import ru.quipy.projection.UserResponse
-import ru.quipy.projection.service.UserProjectionService
+import ru.quipy.projection.ProjectionService
+import ru.quipy.projection.UserDto
 import java.util.*
 
 @RestController
 @RequestMapping("/users")
 class UserController(
     private val userService: UserService,
-    private val userProjectionService: UserProjectionService,
+    private val projectionService: ProjectionService,
 ) {
 
     @PostMapping
@@ -31,14 +31,14 @@ class UserController(
 
     @GetMapping("/login")
     fun authenticateUser(@RequestParam login: String, @RequestParam password: String): ResponseEntity<Void> {
-        val status = if (userProjectionService.isAuthenticatedUser(login, password)) HttpStatus.OK
+        val status = if (projectionService.isAuthenticatedUser(login, password)) HttpStatus.OK
         else HttpStatus.UNAUTHORIZED
 
         return ResponseEntity(status)
     }
 
     @GetMapping
-    fun getAllByLoginFragment(@RequestParam login: String): UserResponse =
-        userProjectionService.getAllByLoginLike(login)
+    fun getAllByLoginFragment(@RequestParam login: String): List<UserDto> =
+        projectionService.getAllUsersByLoginLike(login)
 
 }

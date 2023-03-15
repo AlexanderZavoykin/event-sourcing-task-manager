@@ -43,6 +43,13 @@ class ProjectAggregateEventSubscriber {
                 it[memberId] = event.creatorId
                 it[createdAt] = event.createdAt
             }
+
+            TaskStatusTable.insert {
+                it[id] = event.defaultTaskStatusId
+                it[projectId] = event.projectId
+                it[name] = event.defaultTaskStatusName
+                it[ProjectMemberTable.createdAt] = event.createdAt
+            }
         }
     }
 

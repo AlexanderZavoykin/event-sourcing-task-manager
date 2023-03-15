@@ -14,7 +14,9 @@ import ru.quipy.api.ExecutorRetractedFromTaskEvent
 import ru.quipy.api.TaskAggregate
 import ru.quipy.api.TaskCreatedEvent
 import ru.quipy.api.TaskStatusAssignedToTaskEvent
+import ru.quipy.logic.TaskStatusEntity.Companion.DEFAULT_TASK_STATUS_NAME
 import ru.quipy.projection.TaskExecutorTable
+import ru.quipy.projection.TaskStatusTable
 import ru.quipy.projection.TaskTable
 import ru.quipy.streams.annotation.AggregateSubscriber
 import ru.quipy.streams.annotation.SubscribeEvent
@@ -30,6 +32,13 @@ class TaskAggregateEventSubscriber {
         logger.info("Task created: {}", event.taskId)
 
         transaction {
+                TaskStatusTable.insert {
+                    it[id] = event.defaultTaskStatusId
+                    it[projectId] = event.projectId
+                    it[name] = DEFAULT_TASK_STATUS_NAME
+                    it[TaskTable.createdAt] = event.createdAt
+                }
+
             TaskTable.insert {
                 it[id] = event.taskId
                 it[projectId] = event.projectId

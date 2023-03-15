@@ -1,5 +1,7 @@
 package ru.quipy.controller
 
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
@@ -17,27 +19,33 @@ import ru.quipy.api.TaskCreatedEvent
 import ru.quipy.api.TaskStatusAssignedToTaskEvent
 import ru.quipy.api.TaskStatusCreatedEvent
 import ru.quipy.api.TaskStatusRemovedEvent
-import ru.quipy.logic.ProjectAggregateState
 import ru.quipy.logic.ProjectService
-import ru.quipy.logic.TaskAggregateState
-import ru.quipy.projection.UserResponse
-import ru.quipy.projection.service.UserProjectionService
+import ru.quipy.projection.ProjectFullDto
+import ru.quipy.projection.ProjectShortDto
+import ru.quipy.projection.ProjectionService
+import ru.quipy.projection.TaskShortDto
+import ru.quipy.projection.TaskStatusDto
+import ru.quipy.projection.UserDto
 import java.util.*
 
 @RestController
 @RequestMapping("/projects")
 class ProjectController(
     private val projectService: ProjectService,
-    private val userProjectionService: UserProjectionService,
+    private val projectionService: ProjectionService,
 ) {
+
+    @GetMapping
+    fun getAllProjects(userId: UUID): List<ProjectShortDto> =
+        projectionService.getAllProjectsByUserId(userId)
 
     @PostMapping("/{projectTitle}")
     fun createProject(@PathVariable projectTitle: String, @RequestParam creatorId: UUID): ProjectCreatedEvent =
         projectService.createProject(projectTitle, creatorId)
 
     @GetMapping("/{projectId}")
-    fun getProject(@PathVariable projectId: UUID): ProjectAggregateState? =
-        projectService.getProject(projectId)
+    fun getProject(@PathVariable projectId: UUID): ProjectFullDto? =
+        projectionService.getProjectById(projectId)
 
     @PatchMapping("/{projectId}")
     fun changeTitle(@PathVariable projectId: UUID, @RequestParam title: String): ProjectTitleChangedEvent =
@@ -47,6 +55,14 @@ class ProjectController(
     fun addProjectMember(@PathVariable projectId: UUID, @RequestParam memberId: UUID): ProjectMemberAddedEvent =
         projectService.addProjectMember(projectId, memberId)
 
+    @GetMapping("/{projectId}/members")
+    fun getAllUsersByProjectId(@PathVariable projectId: UUID): List<UserDto> =
+        projectionService.getAllUsersByProjectId(projectId)
+
+    @GetMapping("/{projectId}/taskStatuses")
+    fun getTaskStatusesByProjectId(@PathVariable projectId: UUID): List<TaskStatusDto> =
+        projectionService.getAllTasksStatusesByProjectId(projectId)
+
     @PostMapping("/{projectId}/taskStatuses")
     fun addTaskStatus(@PathVariable projectId: UUID, @RequestParam name: String): TaskStatusCreatedEvent =
         projectService.addTaskStatus(projectId, name)
@@ -54,6 +70,10 @@ class ProjectController(
     @DeleteMapping("/{projectId}/taskStatuses/{taskStatusId}")
     fun removeTaskStatus(@PathVariable projectId: UUID, @PathVariable taskStatusId: UUID): TaskStatusRemovedEvent =
         projectService.removeTaskStatus(projectId, taskStatusId)
+
+    @GetMapping("/{projectId}/tasks/")
+    fun getAllTasksByProjectId(@PathVariable projectId: UUID): List<TaskShortDto> =
+        projectionService.getAllTasksByProjectId(projectId)
 
     @PostMapping("/{projectId}/tasks/")
     fun createTask(
@@ -63,8 +83,10 @@ class ProjectController(
     ): TaskCreatedEvent = projectService.createTask(projectId, taskName, creatorId)
 
     @GetMapping("/{projectId}/tasks/{taskId}")
-    fun getTask(@PathVariable projectId: UUID, @PathVariable taskId: UUID): TaskAggregateState? =
-        projectService.getTask(projectId, taskId)
+    fun getTaskById(@PathVariable projectId: UUID, @PathVariable taskId: UUID): ResponseEntity<*> =
+        projectionService.getTaskById(taskId)
+            ?.let { ResponseEntity(it, HttpStatus.OK) }
+            ?: ResponseEntity.notFound().build<Void>()
 
     @PatchMapping("/{projectId}/tasks/{taskId}")
     fun assignTaskStatus(
@@ -86,9 +108,5 @@ class ProjectController(
         @PathVariable taskId: UUID,
         @RequestParam executorId: UUID,
     ): ExecutorRetractedFromTaskEvent = projectService.retractExecutor(projectId, taskId, executorId)
-
-    @GetMapping("/{projectId}/members")
-    fun getAllUsersByProjectId(@PathVariable projectId: UUID): List<UserResponse> =
-        userProjectionService.getAllByProjectId(projectId)
 
 }

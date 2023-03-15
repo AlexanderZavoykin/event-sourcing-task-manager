@@ -31,10 +31,6 @@ class ProjectService(
         return projectEsService.create { it.create(title = projectTitle, creatorId = creatorId) }
     }
 
-    fun getProject(projectId: UUID): ProjectAggregateState? =
-        projectEsService.getState(projectId)
-            ?: throw NotFoundException("No such project: $projectId")
-
     fun changeTitle(projectId: UUID, title: String): ProjectTitleChangedEvent =
         projectEsService.update(projectId) {
             it.changeTitle(projectId, title)

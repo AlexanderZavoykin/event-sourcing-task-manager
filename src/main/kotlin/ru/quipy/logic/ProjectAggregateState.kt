@@ -19,9 +19,7 @@ class ProjectAggregateState : AggregateState<UUID, ProjectAggregate> {
 
     lateinit var title: String
     lateinit var creatorId: UUID
-    val taskStatuses: MutableMap<UUID, TaskStatusEntity> = with(TaskStatusEntity.created()) {
-        mutableMapOf(this.id to this)
-    }
+    val taskStatuses: MutableMap<UUID, TaskStatusEntity> = mutableMapOf()
     val memberIds = mutableSetOf<UUID>()
 
     override fun getId(): UUID = projectId
@@ -32,6 +30,9 @@ class ProjectAggregateState : AggregateState<UUID, ProjectAggregate> {
         title = event.title
         creatorId = event.creatorId
         memberIds.add(creatorId)
+
+        val taskStatus = TaskStatusEntity(event.defaultTaskStatusId, event.defaultTaskStatusName)
+        taskStatuses[taskStatus.id] = taskStatus
         createdAt = event.createdAt
         updatedAt = event.createdAt
     }
@@ -50,7 +51,7 @@ class ProjectAggregateState : AggregateState<UUID, ProjectAggregate> {
 
     @StateTransitionFunc
     fun taskStatusCreatedApply(event: TaskStatusCreatedEvent) {
-        taskStatuses.values.firstOrNull { it.name ==  event.taskStatusName}
+        taskStatuses.values.firstOrNull { it.name == event.taskStatusName }
             ?.let {
                 throw IllegalStateException("Task status already exists: ${event.name}")
             }
