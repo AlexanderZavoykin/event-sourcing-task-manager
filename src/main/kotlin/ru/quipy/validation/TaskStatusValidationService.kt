@@ -4,6 +4,6 @@ import java.util.*
 
 interface TaskStatusValidationService {
 
-    fun checkNoTaskHasTaskStatus(taskStatusId: UUID)
+    fun checkTaskIsRemovable(taskStatusId: UUID)
 
 }

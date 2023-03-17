@@ -4,34 +4,13 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.springframework.stereotype.Service
-import ru.quipy.security.PasswordEncoder
-import java.util.*
+import ru.quipy.exception.NotFoundException
+import java.util.UUID
 
 @Service
-class SqlProjectionService(
-    private val encoder: PasswordEncoder,
-) : ProjectionService {
+class SqlTaskProjectProjectionService : TaskProjectProjectionService {
 
-    override fun isAuthenticatedUser(login: String, password: String): Boolean {
-        val encodedPassword = transaction {
-            UserTable
-                .slice(UserTable.password)
-                .select { UserTable.login.eq(login) }
-                .map { it[UserTable.password] }
-                .first()
-        }
-        return encoder.verify(password, encodedPassword)
-    }
-
-    override fun getAllUsersByLoginLike(fragment: String): List<UserDto> =
-        transaction {
-            UserTable
-                .slice(UserTable.id, UserTable.login)
-                .select { UserTable.login like "%$fragment%" }
-                .map { UserDto(it[UserTable.id].value, it[UserTable.login]) }
-        }
-
-    override fun getAllUsersByProjectId(projectId: UUID): List<UserDto> =
+    override fun getProjectMembers(projectId: UUID): List<UserDto> =
         transaction {
             (UserTable innerJoin ProjectTable)
                 .slice(UserTable.id, UserTable.login)
@@ -39,7 +18,7 @@ class SqlProjectionService(
                 .map { UserDto(it[UserTable.id].value, it[UserTable.login]) }
         }
 
-    override fun getAllProjectsByUserId(userId: UUID): List<ProjectShortDto> =
+    override fun getProjectsByProjectMember(userId: UUID): List<ProjectShortDto> =
         transaction {
             (ProjectTable innerJoin ProjectMemberTable)
                 .slice(ProjectTable.id, ProjectTable.title, ProjectTable.createdAt)
@@ -54,7 +33,7 @@ class SqlProjectionService(
                 }
         }
 
-    override fun getProjectById(projectId: UUID): ProjectFullDto? =
+    override fun getProjectById(projectId: UUID): ProjectFullDto =
         transaction {
             (ProjectTable innerJoin UserTable)
                 .slice(ProjectTable.id, ProjectTable.title, ProjectTable.createdAt, ProjectTable.creatorId, UserTable.login)
@@ -69,9 +48,10 @@ class SqlProjectionService(
                     )
                 }
                 .firstOrNull()
+                ?: throw NotFoundException("No such project $projectId")
         }
 
-    override fun getAllTasksByProjectId(projectId: UUID): List<TaskShortDto> =
+    override fun getAllProjectsTasks(projectId: UUID): List<TaskShortDto> =
         transaction {
             (TaskTable innerJoin TaskStatusTable)
                 .slice(TaskTable.id, TaskTable.name, TaskStatusTable.name)
@@ -85,7 +65,7 @@ class SqlProjectionService(
                 }
         }
 
-    override fun getTaskById(taskId: UUID): TaskFullDto? =
+    override fun getProjectTask(taskId: UUID): TaskFullDto =
         transaction {
             val executors = getAllExecutorsByTaskId(taskId)
 
@@ -114,9 +94,10 @@ class SqlProjectionService(
                     )
                 }
                 .firstOrNull()
+                ?: throw NotFoundException("No such task $taskId")
         }
 
-    override fun getAllTasksStatusesByProjectId(projectId: UUID): List<TaskStatusDto> =
+    override fun getProjectTaskStatuses(projectId: UUID): List<TaskStatusDto> =
         transaction {
             TaskStatusTable
                 .slice(TaskStatusTable.id, TaskStatusTable.name, TaskStatusTable.createdAt)

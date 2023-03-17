@@ -1,13 +1,13 @@
 package ru.quipy.logic
 
-import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.springframework.stereotype.Service
 import ru.quipy.api.UserAggregate
 import ru.quipy.api.UserCreatedEvent
 import ru.quipy.core.EventSourcingService
+import ru.quipy.exception.NotFoundException
 import ru.quipy.transaction.TransactionManager
 import ru.quipy.validation.LoginValidationService
-import java.util.*
+import java.util.UUID
 
 @Service
 class UserService(
@@ -16,19 +16,17 @@ class UserService(
     private val txManager: TransactionManager,
 ) {
 
-    fun createUser(login: String, password: String): UserCreatedEvent =
-        try {
-            txManager.transaction {
-                loginValidationService.checkUserNotExistsByLogin(login)
+    fun registerUser(login: String, password: String): UserCreatedEvent =
+        txManager.transaction {
+            loginValidationService.checkUserNotExistsByLogin(login)
 
-                return@transaction userEsService.create {
-                    it.create(login = login, password = password)
-                }
+            return@transaction userEsService.create {
+                it.create(login = login, password = password)
             }
-        } catch (e: ExposedSQLException) {
-            throw IllegalStateException("Login already exists")
         }
 
-    fun getUser(userId: UUID): UserAggregateState? = userEsService.getState(userId)
+    fun getUser(userId: UUID): UserAggregateState =
+        userEsService.getState(userId)
+            ?: throw NotFoundException("No such user $userId")
 
 }

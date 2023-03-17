@@ -35,7 +35,7 @@ class ProjectService(
         return projectEsService.create { it.create(title = projectTitle, creatorId = creatorId) }
     }
 
-    fun changeTitle(projectId: UUID, title: String): ProjectTitleChangedEvent =
+    fun changeProjectTitle(projectId: UUID, title: String): ProjectTitleChangedEvent =
         projectEsService.update(projectId) {
             it.changeTitle(projectId, title)
         }
@@ -54,14 +54,19 @@ class ProjectService(
             it.createTaskStatus(name)
         }
 
-    fun removeTaskStatus(projectId: UUID, taskStatusId: UUID): TaskStatusRemovedEvent =
-        txManager.transaction {
-            taskStatusValidationService.checkNoTaskHasTaskStatus(taskStatusId)
+    fun removeTaskStatus(projectId: UUID, taskStatusId: UUID): TaskStatusRemovedEvent {
+        val projectState = projectEsService.getState(projectId)
+            ?: throw NotFoundException("No such project: $projectId")
 
-            return@transaction projectEsService.update(projectId) {
-                it.removeTaskStatus(taskStatusId)
-            }
+        projectState.taskStatuses[taskStatusId]
+            ?: throw NotFoundException("No such task status $taskStatusId in project $projectId")
+
+        taskStatusValidationService.checkTaskIsRemovable(taskStatusId)
+
+        return projectEsService.update(projectId) {
+            it.removeTaskStatus(taskStatusId)
         }
+    }
 
     fun createTask(projectId: UUID, taskName: String, creatorId: UUID): TaskCreatedEvent {
         val projectState = projectEsService.getState(projectId)

@@ -22,7 +22,7 @@ class UserAggregateEventSubscriber(
 
     @SubscribeEvent
     fun userCreatedSubscriber(event: UserCreatedEvent) {
-        logger.info("User created {}", event)
+        logger.info("User created {}", event.userId)
 
         transaction {
             UserTable.insert {
