@@ -16,15 +16,15 @@ import ru.quipy.api.UserAggregate
 import ru.quipy.core.EventSourcingService
 import ru.quipy.exception.NotFoundException
 import ru.quipy.transaction.TransactionManager
-import ru.quipy.validation.SqlTaskStatusValidationService
-import java.util.*
+import ru.quipy.validation.StoredTaskStatusValidationService
+import java.util.UUID
 
 @Service
 class ProjectService(
     private val projectEsService: EventSourcingService<UUID, ProjectAggregate, ProjectAggregateState>,
     private val taskEsService: EventSourcingService<UUID, TaskAggregate, TaskAggregateState>,
     private val userEsService: EventSourcingService<UUID, UserAggregate, UserAggregateState>,
-    private val taskStatusValidationService: SqlTaskStatusValidationService,
+    private val taskStatusValidationService: StoredTaskStatusValidationService,
     private val txManager: TransactionManager,
 ) {
 
@@ -61,7 +61,7 @@ class ProjectService(
         projectState.taskStatuses[taskStatusId]
             ?: throw NotFoundException("No such task status $taskStatusId in project $projectId")
 
-        taskStatusValidationService.checkTaskIsRemovable(taskStatusId)
+        taskStatusValidationService.throwIfTaskStatusAssigned(taskStatusId)
 
         return projectEsService.update(projectId) {
             it.removeTaskStatus(taskStatusId)
@@ -81,7 +81,7 @@ class ProjectService(
 
         return txManager.transaction {
             val taskId = UUID.randomUUID()
-            taskStatusValidationService.upsertTaskStatus(taskId, taskStatusId)
+            taskStatusValidationService.updateTaskStatusAssignment(taskId, taskStatusId)
 
             return@transaction taskEsService.create {
                 it.create(projectId = projectId, taskId = taskId, taskName = taskName, creatorId = creatorId, defaultTaskStatusId = taskStatusId)
@@ -97,7 +97,7 @@ class ProjectService(
             ?: throw NotFoundException("No such task status: $taskStatusId")
 
         return txManager.transaction {
-            taskStatusValidationService.upsertTaskStatus(taskId, taskStatusId)
+            taskStatusValidationService.updateTaskStatusAssignment(taskId, taskStatusId)
 
             return@transaction taskEsService.update(taskId) {
                 it.assignTaskStatus(projectId, taskId, taskStatusId)

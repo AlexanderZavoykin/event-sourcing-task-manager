@@ -28,7 +28,7 @@ class UserAggregateEventSubscriber(
             UserTable.insert {
                 it[id] = event.userId
                 it[login] = event.login
-                it[password] = encoder.encode(event.password)
+                it[password] = event.password
                 it[createdAt] = event.createdAt
             }
         }

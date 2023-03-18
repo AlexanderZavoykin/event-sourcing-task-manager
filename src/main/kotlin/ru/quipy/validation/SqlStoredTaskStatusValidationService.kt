@@ -7,10 +7,14 @@ import org.jetbrains.exposed.sql.update
 import org.springframework.stereotype.Service
 import java.util.UUID
 
+/**
+ * Checks if any assignment of a task status to any task exists by storing and
+ * updating assignments in a relational database table.
+ */
 @Service
-class SqlTaskStatusValidationService : TaskStatusValidationService {
+class SqlStoredTaskStatusValidationService : StoredTaskStatusValidationService {
 
-    override fun checkTaskIsRemovable(taskStatusId: UUID) {
+    override fun throwIfTaskStatusAssigned(taskStatusId: UUID) {
         val taskRow = transaction {
             TaskStatusTable
                 .select { TaskStatusTable.taskStatusId eq taskStatusId }
@@ -22,7 +26,7 @@ class SqlTaskStatusValidationService : TaskStatusValidationService {
         }
     }
 
-    fun upsertTaskStatus(taskId: UUID, taskStatusId: UUID) {
+    override fun updateTaskStatusAssignment(taskId: UUID, taskStatusId: UUID) {
         transaction {
             val result = TaskStatusTable.update({ TaskStatusTable.taskId eq taskId }) { it[this.taskStatusId] = taskStatusId }
 

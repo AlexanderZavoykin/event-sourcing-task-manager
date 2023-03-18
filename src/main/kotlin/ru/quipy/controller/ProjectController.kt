@@ -20,13 +20,13 @@ import ru.quipy.api.TaskStatusAssignedToTaskEvent
 import ru.quipy.api.TaskStatusCreatedEvent
 import ru.quipy.api.TaskStatusRemovedEvent
 import ru.quipy.logic.ProjectService
-import ru.quipy.projection.ProjectFullDto
-import ru.quipy.projection.ProjectShortDto
+import ru.quipy.projection.ProjectDetailInfo
+import ru.quipy.projection.ProjectHeader
 import ru.quipy.projection.TaskProjectProjectionService
-import ru.quipy.projection.TaskFullDto
-import ru.quipy.projection.TaskShortDto
-import ru.quipy.projection.TaskStatusDto
-import ru.quipy.projection.UserDto
+import ru.quipy.projection.TaskDetailInfo
+import ru.quipy.projection.TaskHeader
+import ru.quipy.projection.TaskStatusInfo
+import ru.quipy.projection.UserInfo
 import java.util.*
 
 @RestController
@@ -39,7 +39,7 @@ class ProjectController(
 
     @GetMapping
     @Operation(summary = "Get projects a user is participating (is a member of)")
-    fun getProjectsByProjectMember(@RequestParam userId: UUID): List<ProjectShortDto> =
+    fun getProjectsByProjectMember(@RequestParam userId: UUID): List<ProjectHeader> =
         taskProjectProjectionService.getProjectsByProjectMember(userId)
 
     @PostMapping("/{projectTitle}")
@@ -48,8 +48,8 @@ class ProjectController(
         projectService.createProject(projectTitle, creatorId)
 
     @GetMapping("/{projectId}")
-    @Operation(summary = "Get project by its ID")
-    fun getProject(@PathVariable projectId: UUID): ProjectFullDto =
+    @Operation(summary = "Get project")
+    fun getProject(@PathVariable projectId: UUID): ProjectDetailInfo =
         taskProjectProjectionService.getProjectById(projectId)
 
     @PatchMapping("/{projectId}")
@@ -64,12 +64,12 @@ class ProjectController(
 
     @GetMapping("/{projectId}/members")
     @Operation(summary = "Get members of a project")
-    fun getProjectMembers(@PathVariable projectId: UUID): List<UserDto> =
+    fun getProjectMembers(@PathVariable projectId: UUID): List<UserInfo> =
         taskProjectProjectionService.getProjectMembers(projectId)
 
     @GetMapping("/{projectId}/taskStatuses")
     @Operation(summary = "Get task statuses of a project")
-    fun getProjectTaskStatuses(@PathVariable projectId: UUID): List<TaskStatusDto> =
+    fun getProjectTaskStatuses(@PathVariable projectId: UUID): List<TaskStatusInfo> =
         taskProjectProjectionService.getProjectTaskStatuses(projectId)
 
     @PostMapping("/{projectId}/taskStatuses")
@@ -84,7 +84,7 @@ class ProjectController(
 
     @GetMapping("/{projectId}/tasks/")
     @Operation(summary = "Get tasks of a project")
-    fun getAllProjectsTasks(@PathVariable projectId: UUID): List<TaskShortDto> =
+    fun getAllProjectsTasks(@PathVariable projectId: UUID): List<TaskHeader> =
         taskProjectProjectionService.getAllProjectsTasks(projectId)
 
     @PostMapping("/{projectId}/tasks/")
@@ -97,7 +97,7 @@ class ProjectController(
 
     @GetMapping("/{projectId}/tasks/{taskId}")
     @Operation(summary = "Get task of a project")
-    fun getProjectTask(@PathVariable projectId: UUID, @PathVariable taskId: UUID): TaskFullDto =
+    fun getProjectTask(@PathVariable projectId: UUID, @PathVariable taskId: UUID): TaskDetailInfo =
         taskProjectProjectionService.getProjectTask(taskId)
 
     @PatchMapping("/{projectId}/tasks/{taskId}")

@@ -12,12 +12,12 @@ class SqlUserProjectionService(
     private val encoder: PasswordEncoder,
 ) : UserProjectionService {
 
-    override fun getUser(userId: UUID): UserDto =
+    override fun getUser(userId: UUID): UserInfo =
         transaction {
             UserTable
                 .slice(UserTable.id, UserTable.login)
                 .select { UserTable.id eq userId }
-                .map { UserDto(it[UserTable.id].value, it[UserTable.login]) }
+                .map { UserInfo(it[UserTable.id].value, it[UserTable.login]) }
                 .firstOrNull()
                 ?: throw NotFoundException("No such user $userId")
         }
@@ -33,12 +33,12 @@ class SqlUserProjectionService(
         return encoder.verify(password, encodedPassword)
     }
 
-    override fun getUsersByLoginFragment(fragment: String): List<UserDto> =
+    override fun getUsersByLoginFragment(fragment: String): List<UserInfo> =
         transaction {
             UserTable
                 .slice(UserTable.id, UserTable.login)
                 .select { UserTable.login like "%$fragment%" }
-                .map { UserDto(it[UserTable.id].value, it[UserTable.login]) }
+                .map { UserInfo(it[UserTable.id].value, it[UserTable.login]) }
         }
 
 }

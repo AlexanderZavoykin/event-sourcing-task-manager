@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import ru.quipy.api.UserCreatedEvent
 import ru.quipy.logic.UserService
-import ru.quipy.projection.UserDto
+import ru.quipy.projection.UserInfo
 import ru.quipy.projection.UserProjectionService
 import java.util.*
 
@@ -31,7 +31,7 @@ class UserController(
 
     @GetMapping("/{userId}")
     @Operation(summary = "Get a user")
-    fun getUser(@PathVariable userId: UUID): UserDto = userProjectionService.getUser(userId)
+    fun getUser(@PathVariable userId: UUID): UserInfo = userProjectionService.getUser(userId)
 
     @GetMapping("/login")
     @Operation(summary = "Authenticate a user")
@@ -44,7 +44,7 @@ class UserController(
 
     @GetMapping
     @Operation(summary = "Get users with logins partly coincided with a given login fragment")
-    fun getUsersByLoginFragment(@RequestParam login: String): List<UserDto> =
+    fun getUsersByLoginFragment(@RequestParam login: String): List<UserInfo> =
         userProjectionService.getUsersByLoginFragment(login)
 
 }

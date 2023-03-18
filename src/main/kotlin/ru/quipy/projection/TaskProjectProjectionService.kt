@@ -4,16 +4,16 @@ import java.util.UUID
 
 interface TaskProjectProjectionService {
 
-    fun getProjectMembers(projectId: UUID): List<UserDto>
+    fun getProjectMembers(projectId: UUID): List<UserInfo>
 
-    fun getProjectsByProjectMember(userId: UUID): List<ProjectShortDto>
+    fun getProjectsByProjectMember(userId: UUID): List<ProjectHeader>
 
-    fun getProjectById(projectId: UUID): ProjectFullDto
+    fun getProjectById(projectId: UUID): ProjectDetailInfo
 
-    fun getAllProjectsTasks(projectId: UUID): List<TaskShortDto>
+    fun getAllProjectsTasks(projectId: UUID): List<TaskHeader>
 
-    fun getProjectTask(taskId: UUID): TaskFullDto
+    fun getProjectTask(taskId: UUID): TaskDetailInfo
 
-    fun getProjectTaskStatuses(projectId: UUID): List<TaskStatusDto>
+    fun getProjectTaskStatuses(projectId: UUID): List<TaskStatusInfo>
 
 }

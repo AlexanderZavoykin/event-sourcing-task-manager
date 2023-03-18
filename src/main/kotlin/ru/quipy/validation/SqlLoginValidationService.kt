@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service
 @Service
 class SqlLoginValidationService : LoginValidationService {
 
-    override fun checkUserNotExistsByLogin(login: String) {
+    override fun throwsIfUserLoginExists(login: String) {
         try {
             LoginTable.insert {
                 it[this.login] = login

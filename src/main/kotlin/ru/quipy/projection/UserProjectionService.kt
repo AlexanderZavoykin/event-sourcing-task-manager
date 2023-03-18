@@ -4,10 +4,10 @@ import java.util.UUID
 
 interface UserProjectionService {
 
-    fun getUser(userId: UUID): UserDto
+    fun getUser(userId: UUID): UserInfo
 
     fun isAuthenticatedUser(login: String, password: String): Boolean
 
-    fun getUsersByLoginFragment(fragment: String): List<UserDto>
+    fun getUsersByLoginFragment(fragment: String): List<UserInfo>
 
 }

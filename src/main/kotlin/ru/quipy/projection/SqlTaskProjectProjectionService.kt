@@ -10,22 +10,22 @@ import java.util.UUID
 @Service
 class SqlTaskProjectProjectionService : TaskProjectProjectionService {
 
-    override fun getProjectMembers(projectId: UUID): List<UserDto> =
+    override fun getProjectMembers(projectId: UUID): List<UserInfo> =
         transaction {
             (UserTable innerJoin ProjectTable)
                 .slice(UserTable.id, UserTable.login)
                 .select { ProjectTable.id eq projectId }
-                .map { UserDto(it[UserTable.id].value, it[UserTable.login]) }
+                .map { UserInfo(it[UserTable.id].value, it[UserTable.login]) }
         }
 
-    override fun getProjectsByProjectMember(userId: UUID): List<ProjectShortDto> =
+    override fun getProjectsByProjectMember(userId: UUID): List<ProjectHeader> =
         transaction {
             (ProjectTable innerJoin ProjectMemberTable)
                 .slice(ProjectTable.id, ProjectTable.title, ProjectTable.createdAt)
                 .select { ProjectMemberTable.memberId eq userId }
                 .withDistinct()
                 .map {
-                    ProjectShortDto(
+                    ProjectHeader(
                         id = it[ProjectTable.id].value,
                         title = it[ProjectTable.title],
                         createdAt = it[ProjectTable.createdAt],
@@ -33,13 +33,13 @@ class SqlTaskProjectProjectionService : TaskProjectProjectionService {
                 }
         }
 
-    override fun getProjectById(projectId: UUID): ProjectFullDto =
+    override fun getProjectById(projectId: UUID): ProjectDetailInfo =
         transaction {
             (ProjectTable innerJoin UserTable)
                 .slice(ProjectTable.id, ProjectTable.title, ProjectTable.createdAt, ProjectTable.creatorId, UserTable.login)
                 .select { ProjectTable.id eq projectId }
                 .map {
-                    ProjectFullDto(
+                    ProjectDetailInfo(
                         id = it[ProjectTable.id].value,
                         title = it[ProjectTable.title],
                         createdAt = it[ProjectTable.createdAt],
@@ -51,13 +51,13 @@ class SqlTaskProjectProjectionService : TaskProjectProjectionService {
                 ?: throw NotFoundException("No such project $projectId")
         }
 
-    override fun getAllProjectsTasks(projectId: UUID): List<TaskShortDto> =
+    override fun getAllProjectsTasks(projectId: UUID): List<TaskHeader> =
         transaction {
             (TaskTable innerJoin TaskStatusTable)
                 .slice(TaskTable.id, TaskTable.name, TaskStatusTable.name)
                 .select(TaskTable.projectId eq projectId)
                 .map {
-                    TaskShortDto(
+                    TaskHeader(
                         id = it[TaskTable.id].value,
                         name = it[TaskTable.name],
                         taskStatusName = it[TaskStatusTable.name],
@@ -65,7 +65,7 @@ class SqlTaskProjectProjectionService : TaskProjectProjectionService {
                 }
         }
 
-    override fun getProjectTask(taskId: UUID): TaskFullDto =
+    override fun getProjectTask(taskId: UUID): TaskDetailInfo =
         transaction {
             val executors = getAllExecutorsByTaskId(taskId)
 
@@ -81,7 +81,7 @@ class SqlTaskProjectProjectionService : TaskProjectProjectionService {
                 )
                 .select(TaskTable.id eq taskId)
                 .map {
-                    TaskFullDto(
+                    TaskDetailInfo(
                         id = taskId,
                         projectId = it[TaskTable.projectId].value,
                         name = it[TaskTable.name],
@@ -97,13 +97,13 @@ class SqlTaskProjectProjectionService : TaskProjectProjectionService {
                 ?: throw NotFoundException("No such task $taskId")
         }
 
-    override fun getProjectTaskStatuses(projectId: UUID): List<TaskStatusDto> =
+    override fun getProjectTaskStatuses(projectId: UUID): List<TaskStatusInfo> =
         transaction {
             TaskStatusTable
                 .slice(TaskStatusTable.id, TaskStatusTable.name, TaskStatusTable.createdAt)
                 .select { TaskStatusTable.projectId eq projectId }
                 .map {
-                    TaskStatusDto(
+                    TaskStatusInfo(
                         id = it[TaskStatusTable.id].value,
                         name = it[TaskStatusTable.name],
                         createdAt = it[TaskStatusTable.createdAt],
@@ -111,10 +111,10 @@ class SqlTaskProjectProjectionService : TaskProjectProjectionService {
                 }
         }
 
-    private fun getAllExecutorsByTaskId(taskId: UUID): List<UserDto> =
+    private fun getAllExecutorsByTaskId(taskId: UUID): List<UserInfo> =
         (UserTable innerJoin TaskExecutorTable)
             .slice(UserTable.id, UserTable.login)
             .select { TaskExecutorTable.taskId eq taskId }
-            .map { UserDto(it[UserTable.id].value, it[UserTable.login]) }
+            .map { UserInfo(it[UserTable.id].value, it[UserTable.login]) }
 
 }
