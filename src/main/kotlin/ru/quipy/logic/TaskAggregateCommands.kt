@@ -8,7 +8,7 @@ import java.util.*
 
 fun TaskAggregateState.create(
     projectId: UUID,
-    taskId: UUID = UUID.randomUUID(),
+    taskId: UUID,
     taskName: String,
     creatorId: UUID,
     defaultTaskStatusId: UUID,

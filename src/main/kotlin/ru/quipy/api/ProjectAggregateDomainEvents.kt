@@ -2,6 +2,7 @@ package ru.quipy.api
 
 import ru.quipy.core.annotations.DomainEvent
 import ru.quipy.domain.Event
+import ru.quipy.logic.TaskStatusEntity.Companion.DEFAULT_TASK_STATUS_NAME
 import java.util.*
 
 const val PROJECT_CREATED_EVENT = "PROJECT_CREATED_EVENT"
@@ -15,6 +16,8 @@ class ProjectCreatedEvent(
     val projectId: UUID,
     val title: String,
     val creatorId: UUID,
+    val defaultTaskStatusId: UUID = UUID.randomUUID(),
+    val defaultTaskStatusName: String = DEFAULT_TASK_STATUS_NAME,
     createdAt: Long = System.currentTimeMillis(),
 ) : Event<ProjectAggregate>(
     name = PROJECT_CREATED_EVENT,

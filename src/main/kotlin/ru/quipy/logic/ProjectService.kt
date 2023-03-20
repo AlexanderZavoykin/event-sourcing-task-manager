@@ -15,13 +15,17 @@ import ru.quipy.api.TaskStatusRemovedEvent
 import ru.quipy.api.UserAggregate
 import ru.quipy.core.EventSourcingService
 import ru.quipy.exception.NotFoundException
-import java.util.*
+import ru.quipy.transaction.TransactionManager
+import ru.quipy.validation.StoredTaskStatusValidationService
+import java.util.UUID
 
 @Service
 class ProjectService(
     private val projectEsService: EventSourcingService<UUID, ProjectAggregate, ProjectAggregateState>,
     private val taskEsService: EventSourcingService<UUID, TaskAggregate, TaskAggregateState>,
     private val userEsService: EventSourcingService<UUID, UserAggregate, UserAggregateState>,
+    private val taskStatusValidationService: StoredTaskStatusValidationService,
+    private val txManager: TransactionManager,
 ) {
 
     fun createProject(projectTitle: String, creatorId: UUID): ProjectCreatedEvent {
@@ -31,11 +35,7 @@ class ProjectService(
         return projectEsService.create { it.create(title = projectTitle, creatorId = creatorId) }
     }
 
-    fun getProject(projectId: UUID): ProjectAggregateState? =
-        projectEsService.getState(projectId)
-            ?: throw NotFoundException("No such project: $projectId")
-
-    fun changeTitle(projectId: UUID, title: String): ProjectTitleChangedEvent =
+    fun changeProjectTitle(projectId: UUID, title: String): ProjectTitleChangedEvent =
         projectEsService.update(projectId) {
             it.changeTitle(projectId, title)
         }
@@ -55,7 +55,13 @@ class ProjectService(
         }
 
     fun removeTaskStatus(projectId: UUID, taskStatusId: UUID): TaskStatusRemovedEvent {
-        // TODO check that no task in this project has this status
+        val projectState = projectEsService.getState(projectId)
+            ?: throw NotFoundException("No such project: $projectId")
+
+        projectState.taskStatuses[taskStatusId]
+            ?: throw NotFoundException("No such task status $taskStatusId in project $projectId")
+
+        taskStatusValidationService.throwIfTaskStatusAssigned(taskStatusId)
 
         return projectEsService.update(projectId) {
             it.removeTaskStatus(taskStatusId)
@@ -73,16 +79,14 @@ class ProjectService(
             .first { it.name == TaskStatusEntity.DEFAULT_TASK_STATUS_NAME }
             .id
 
-        return taskEsService.create {
-            it.create(projectId = projectId, taskName = taskName, creatorId = creatorId, defaultTaskStatusId = taskStatusId)
+        return txManager.transaction {
+            val taskId = UUID.randomUUID()
+            taskStatusValidationService.updateTaskStatusAssignment(taskId, taskStatusId)
+
+            return@transaction taskEsService.create {
+                it.create(projectId = projectId, taskId = taskId, taskName = taskName, creatorId = creatorId, defaultTaskStatusId = taskStatusId)
+            }
         }
-    }
-
-    fun getTask(projectId: UUID, taskId: UUID): TaskAggregateState? {
-        projectEsService.getState(projectId)
-            ?: throw NotFoundException("No such project: $projectId")
-
-        return taskEsService.getState(taskId)
     }
 
     fun assignTaskStatus(projectId: UUID, taskId: UUID, taskStatusId: UUID): TaskStatusAssignedToTaskEvent {
@@ -92,8 +96,12 @@ class ProjectService(
         projectState.taskStatuses[taskStatusId]
             ?: throw NotFoundException("No such task status: $taskStatusId")
 
-        return taskEsService.update(taskId) {
-            it.assignTaskStatus(projectId, taskId, taskStatusId)
+        return txManager.transaction {
+            taskStatusValidationService.updateTaskStatusAssignment(taskId, taskStatusId)
+
+            return@transaction taskEsService.update(taskId) {
+                it.assignTaskStatus(projectId, taskId, taskStatusId)
+            }
         }
     }
 
