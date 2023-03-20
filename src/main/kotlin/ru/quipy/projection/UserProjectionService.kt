@@ -6,7 +6,7 @@ interface UserProjectionService {
 
     fun getUser(userId: UUID): UserInfo
 
-    fun isAuthenticatedUser(login: String, password: String): Boolean
+    fun getUserIdByLogin(login: String): UUID
 
     fun getUsersByLoginFragment(fragment: String): List<UserInfo>
 

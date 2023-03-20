@@ -36,7 +36,7 @@ class UserController(
     @GetMapping("/login")
     @Operation(summary = "Authenticate a user")
     fun authenticateUser(@RequestParam login: String, @RequestParam password: String): ResponseEntity<Void> {
-        val status = if (userProjectionService.isAuthenticatedUser(login, password)) HttpStatus.OK
+        val status = if (userService.isAuthenticatedUser(login, password)) HttpStatus.OK
         else HttpStatus.UNAUTHORIZED
 
         return ResponseEntity(status)

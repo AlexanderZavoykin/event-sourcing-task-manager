@@ -22,16 +22,14 @@ class SqlUserProjectionService(
                 ?: throw NotFoundException("No such user $userId")
         }
 
-    override fun isAuthenticatedUser(login: String, password: String): Boolean {
-        val encodedPassword = transaction {
-            UserTable
-                .slice(UserTable.password)
+    override fun getUserIdByLogin(login: String): UUID =
+        transaction {
+            UserTable.slice(UserTable.id)
                 .select { UserTable.login.eq(login) }
-                .map { it[UserTable.password] }
-                .first()
+                .map { it[UserTable.id].value }
+                .firstOrNull()
+                ?: throw NotFoundException("No such user with login $login")
         }
-        return encoder.verify(password, encodedPassword)
-    }
 
     override fun getUsersByLoginFragment(fragment: String): List<UserInfo> =
         transaction {
